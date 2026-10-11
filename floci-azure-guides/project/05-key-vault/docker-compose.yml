@@ -1,0 +1,5 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"          # Key Vault lives at  http://localhost:4577/<account>-keyvault

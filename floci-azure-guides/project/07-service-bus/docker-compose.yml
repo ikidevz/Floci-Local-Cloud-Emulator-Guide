@@ -1,0 +1,13 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"          # management plane: /<acct>-servicebus
+      - "5673:5673"          # AMQP 1.0 data plane (Artemis sidecar)
+      - "5674:5674"          # AMQPS
+    volumes:
+      - ./Config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro     # declarative topology, applied at startup
+      - /var/run/docker.sock:/var/run/docker.sock                          # REQUIRED: Artemis runs as a sidecar container
+    environment:
+      FLOCI_AZ_SERVICES_SERVICE_BUS_MOCKED: "false"          # DEFAULT IS TRUE: management calls answer, but nothing can be sent or received
+      FLOCI_AZ_SERVICES_SERVICE_BUS_START_ON_BOOT: "true"    # otherwise nothing listens on :5673 until an entity is created

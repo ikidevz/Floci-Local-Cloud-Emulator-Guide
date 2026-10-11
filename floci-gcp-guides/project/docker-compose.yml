@@ -1,0 +1,32 @@
+services:
+  gcs:
+    image: fsouza/fake-gcs-server
+    command: ["-scheme", "http", "-port", "4443", "-public-host", "localhost:4443"]
+    ports: ["4443:4443"]
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085 --project=demo-project
+    ports: ["8085:8085"]
+  firestore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud emulators firestore start --host-port=0.0.0.0:8080 --project=demo-project
+    ports: ["8080:8080"]
+  bigtable:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators bigtable start --host-port=0.0.0.0:8086 --project=demo-project
+    ports: ["8086:8086"]
+  spanner:
+    image: gcr.io/cloud-spanner-emulator/emulator
+    ports: ["9010:9010", "9020:9020"]
+  bigquery:
+    image: ghcr.io/goccy/bigquery-emulator:latest
+    command: ["--project=demo-project", "--dataset=demo"]
+    ports: ["9050:9050", "9060:9060"]
+  tasks:
+    image: ghcr.io/aertje/cloud-tasks-emulator:latest
+    command: ["-host", "0.0.0.0", "-port", "8123"]
+    ports: ["8123:8123"]
+  postgres:
+    image: postgres:16
+    environment: {POSTGRES_PASSWORD: postgres, POSTGRES_DB: app}
+    ports: ["5432:5432"]

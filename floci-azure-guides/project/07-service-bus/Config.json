@@ -1,0 +1,49 @@
+{
+  "UserConfig": {
+    "Namespaces": [
+      {
+        "Name": "sbemulatorns",
+        "Topics": [
+          {
+            "Name": "fleet-alerts",
+            "Properties": { "DefaultMessageTimeToLive": "P1D", "DuplicateDetectionHistoryTimeWindow": "PT1H", "RequiresDuplicateDetection": true },
+            "Subscriptions": [
+              {
+                "Name": "pager",
+                "Properties": { "DefaultMessageTimeToLive": "P1D", "LockDuration": "PT1M", "MaxDeliveryCount": 5 },
+                "Rules": [ { "Name": "critical-only", "Properties": { "FilterType": "Sql", "SqlFilter": { "SqlExpression": "severity = 'CRITICAL'" } } } ]
+              },
+              {
+                "Name": "ops",
+                "Properties": { "DefaultMessageTimeToLive": "P1D", "LockDuration": "PT1M", "MaxDeliveryCount": 5 },
+                "Rules": [ { "Name": "warnings", "Properties": { "FilterType": "Sql", "SqlFilter": { "SqlExpression": "severity = 'WARNING'" } } } ]
+              }
+            ]
+          },
+          {
+            "Name": "dq-results",
+            "Properties": { "DefaultMessageTimeToLive": "P1D", "DuplicateDetectionHistoryTimeWindow": "PT1H", "RequiresDuplicateDetection": true },
+            "Subscriptions": [
+              {
+                "Name": "ops",
+                "Properties": { "DefaultMessageTimeToLive": "P1D", "LockDuration": "PT1M", "MaxDeliveryCount": 5 },
+                "Rules": [ { "Name": "filter", "Properties": { "FilterType": "Sql", "SqlFilter": { "SqlExpression": "route = 'QUARANTINED' OR route = 'DUPLICATE'" } } } ]
+              },
+              {
+                "Name": "compliance",
+                "Properties": { "DefaultMessageTimeToLive": "P1D", "LockDuration": "PT1M", "MaxDeliveryCount": 5 },
+                "Rules": [ { "Name": "filter", "Properties": { "FilterType": "Sql", "SqlFilter": { "SqlExpression": "severity = 'CRITICAL'" } } } ]
+              },
+              {
+                "Name": "downstream",
+                "Properties": { "DefaultMessageTimeToLive": "P1D", "LockDuration": "PT1M", "MaxDeliveryCount": 5 },
+                "Rules": [ { "Name": "filter", "Properties": { "FilterType": "Sql", "SqlFilter": { "SqlExpression": "route = 'ACCEPTED' OR route = 'PARTIAL'" } } } ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Logging": { "Type": "File" }
+  }
+}

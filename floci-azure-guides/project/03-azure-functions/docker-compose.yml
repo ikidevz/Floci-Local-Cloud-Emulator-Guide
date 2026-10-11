@@ -1,0 +1,7 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"                                  # Functions admin + invoke: http://localhost:4577/<account>-functions
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock    # REQUIRED: Floci spawns the real Azure Functions runtime as a container

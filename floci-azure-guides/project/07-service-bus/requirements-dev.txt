@@ -1,0 +1,3 @@
+azure-servicebus==7.*
+pytest
+sqlglot

@@ -1,0 +1,2 @@
+azure-eventhub==5.*
+azure-eventhub-checkpointstoreblob==1.*     # optional: durable checkpoints in Blob (without it update_checkpoint is a no-op)

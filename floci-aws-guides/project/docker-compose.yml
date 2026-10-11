@@ -1,0 +1,42 @@
+name: floci-aws
+
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: floci
+    ports:
+      - "4566:4566"            # every AWS API
+      - "7001-7099:7001-7099"  # RDS proxy ports (needed to reach Postgres from the host)
+    environment:
+      FLOCI_HOSTNAME: floci                      # URLs (e.g. SQS QueueUrl) use this name
+      FLOCI_SERVICES_DOCKER_NETWORK: floci-net   # Lambda / RDS / Athena containers join this network
+      FLOCI_STORAGE_MODE: persistent
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Lambda, RDS and the Athena sidecar are real containers
+      - floci-data:/app/data
+    networks: [floci-net]
+
+  # Optional: run the Python code inside the same Docker network (no hosts-file change needed)
+  #   docker compose --profile tools run --rm app pytest
+  app:
+    image: python:3.12-slim
+    profiles: ["tools"]
+    working_dir: /work
+    volumes:
+      - .:/work
+    environment:
+      AWS_ENDPOINT_URL: http://floci:4566
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    command: sh -c "pip install -q -r requirements.txt && sleep infinity"
+    depends_on: [floci]
+    networks: [floci-net]
+
+networks:
+  floci-net:
+    name: floci-net
+
+volumes:
+  floci-data:

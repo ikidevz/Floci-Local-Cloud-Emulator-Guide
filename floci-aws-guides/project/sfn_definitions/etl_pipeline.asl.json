@@ -1,0 +1,69 @@
+{
+  "Comment": "Glue job orchestrated via Lambda (Floci has no glue:startJobRun.sync integration)",
+  "StartAt": "StartGlueJob",
+  "States": {
+    "StartGlueJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${GLUE_RUNNER_ARN}",
+        "Payload": { "action": "start_job", "job": "${GLUE_JOB_NAME}" }
+      },
+      "ResultSelector": { "run_id.$": "$.Payload.run_id" },
+      "ResultPath": "$.glue",
+      "Retry": [
+        { "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2, "MaxAttempts": 3, "BackoffRate": 2.0 }
+      ],
+      "Catch": [ { "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyFailure" } ],
+      "Next": "WaitForJob"
+    },
+    "WaitForJob": { "Type": "Wait", "Seconds": 5, "Next": "CheckJob" },
+    "CheckJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${GLUE_RUNNER_ARN}",
+        "Payload": { "action": "job_status", "job": "${GLUE_JOB_NAME}", "run_id.$": "$.glue.run_id" }
+      },
+      "ResultSelector": { "run_id.$": "$.Payload.run_id", "state.$": "$.Payload.state" },
+      "ResultPath": "$.glue",
+      "Catch": [ { "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyFailure" } ],
+      "Next": "JobDone"
+    },
+    "JobDone": {
+      "Type": "Choice",
+      "Choices": [
+        { "Variable": "$.glue.state", "StringEquals": "SUCCEEDED", "Next": "NotifySuccess" },
+        { "Or": [
+            { "Variable": "$.glue.state", "StringEquals": "FAILED" },
+            { "Variable": "$.glue.state", "StringEquals": "ERROR" },
+            { "Variable": "$.glue.state", "StringEquals": "TIMEOUT" },
+            { "Variable": "$.glue.state", "StringEquals": "STOPPED" }
+          ], "Next": "NotifyFailure" }
+      ],
+      "Default": "WaitForJob"
+    },
+    "NotifySuccess": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${SNS_TOPIC_ARN}",
+        "Subject": "ETL succeeded",
+        "Message.$": "States.JsonToString($.glue)"
+      },
+      "End": true
+    },
+    "NotifyFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${SNS_TOPIC_ARN}",
+        "Subject": "ETL FAILED",
+        "Message.$": "States.JsonToString($)"
+      },
+      "Next": "PipelineFailed"
+    },
+    "PipelineFailed": { "Type": "Fail", "Error": "PipelineFailed", "Cause": "See SNS notification" }
+  }
+}

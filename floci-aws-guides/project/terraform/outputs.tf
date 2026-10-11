@@ -1,0 +1,9 @@
+output "raw_bucket" { value = aws_s3_bucket.this["raw"].bucket }
+output "queue_url" { value = aws_sqs_queue.main.url }
+output "dlq_url" { value = aws_sqs_queue.dlq.url }
+output "topic_arn" { value = aws_sns_topic.alerts.arn }
+output "state_machine_arn" { value = aws_sfn_state_machine.etl.arn }
+output "stream_name" { value = aws_kinesis_stream.events.name }
+output "events_table" { value = aws_dynamodb_table.events.name }
+output "athena_workgroup" { value = aws_athena_workgroup.main.name }
+output "rds_endpoint" { value = aws_db_instance.postgres.endpoint }

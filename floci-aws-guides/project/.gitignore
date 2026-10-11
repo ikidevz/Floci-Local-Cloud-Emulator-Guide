@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.env
+terraform/.terraform/
+terraform/build/
+terraform/*.tfstate*
+data/orders.csv

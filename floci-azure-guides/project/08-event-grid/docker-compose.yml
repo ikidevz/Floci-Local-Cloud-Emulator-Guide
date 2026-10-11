@@ -1,0 +1,9 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"          # ARM paths (topics, subscriptions) AND the publish endpoint /<topic>-eventgrid/api/events. HTTP only, no sidecar.
+    # Floci calls your webhook FROM INSIDE the container: use host.docker.internal:<port>, not localhost.
+    # On native Linux Docker, if invocations time out and you run UFW:  sudo ufw allow in on docker0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

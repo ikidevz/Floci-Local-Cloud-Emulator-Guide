@@ -1,0 +1,12 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"          # HTTP: management, health  (/<acct>-eventhub/health)
+      - "5672:5672"          # Event Hubs AMQP 1.0 (Artemis sidecar) - the data plane
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock    # REQUIRED: the Artemis broker is started as a sidecar container
+    environment:
+      FLOCI_AZ_SERVICES_EVENT_HUB_ENABLED: "true"
+      FLOCI_AZ_SERVICES_EVENT_HUB_ENTITIES: "telemetry:4"      # name:partitions. Hubs are PRE-CONFIGURED here, not created at runtime
+      # Only the $Default consumer group is guaranteed; extra groups come from config (see the Floci AZ Event Hubs page).

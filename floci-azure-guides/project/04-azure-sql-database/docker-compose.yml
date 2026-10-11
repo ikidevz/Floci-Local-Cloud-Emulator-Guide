@@ -1,0 +1,12 @@
+services:
+  floci-az:
+    image: floci/floci-az:latest
+    ports:
+      - "4577:4577"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock                 # REQUIRED: a real SQL Server container is started per logical server
+    environment:
+      FLOCI_AZ_SERVICES_SQL_DATA_PLANE_PROVIDER: managed          # default is 'none' = ARM metadata only, no TDS endpoint
+      FLOCI_AZ_SERVICES_SQL_ACCEPT_EULA: "Y"                      # you must accept the Microsoft SQL Server EULA
+      # The SQL Server container binds a RANDOM host port. Do not publish it here; read it from  .../connect
+      # Microsoft supports the SQL Server Linux image on x86-64 only (ARM: set FLOCI_AZ_SERVICES_SQL_IMAGE to something that runs there).
